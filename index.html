@@ -522,6 +522,14 @@
                             </div>
                             <div class="flex-1">
                                 <h3 class="text-xl font-semibold text-red-500 mb-3">ЗАДАЧА ДЛЯ ПОДГОТОВКИ К ЕГЭ</h3>
+                                <div class="flex mb-4">
+                                    <button onclick="setEgeLevel('basic')" id="ege-basic-btn" class="px-4 py-2 rounded-l-lg font-medium bg-red-900/50 text-white border border-red-500">
+                                        Базовый уровень (№15)
+                                    </button>
+                                    <button onclick="setEgeLevel('advanced')" id="ege-advanced-btn" class="px-4 py-2 rounded-r-lg font-medium bg-gray-800/50 text-white/70 border border-gray-700">
+                                        Повышенный уровень (№17)
+                                    </button>
+                                </div>
                                 <p id="ege-question" class="mb-4 text-white/80"></p>
                                 
                                 <div class="flex flex-col md:flex-row gap-4 items-start md:items-end">
@@ -773,6 +781,18 @@
             }
         }
 
+        // Установка уровня сложности для задач ЕГЭ
+        function setEgeLevel(level) {
+            currentLevel = level;
+            
+            // Обновляем стили кнопок
+            document.getElementById('ege-basic-btn').className = level === 'basic' ? 'px-4 py-2 rounded-l-lg font-medium bg-red-900/50 text-white border border-red-500' : 'px-4 py-2 rounded-l-lg font-medium bg-gray-800/50 text-white/70 border border-gray-700';
+            document.getElementById('ege-advanced-btn').className = level === 'advanced' ? 'px-4 py-2 rounded-r-lg font-medium bg-red-900/50 text-white border border-red-500' : 'px-4 py-2 rounded-r-lg font-medium bg-gray-800/50 text-white/70 border border-gray-700';
+            
+            // Генерируем новую задачу
+            generateEgeTask();
+        }
+
         // Обновление прогресса
         function updateProgress() {
             let totalCorrect = 0;
@@ -792,6 +812,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             createBubbles();
             generateDepositTask();
+            setEgeLevel('basic');
         });
 
         function checkDepositAnswer() {
@@ -998,79 +1019,31 @@
             
             const userInput = answerInput.value.trim();
             
-            // Проверка для задач с выбором варианта (1 или 2)
-            if (currentEgeTask.question.includes('Выберите более выгодный вариант')) {
-                if (userInput !== '1' && userInput !== '2') {
-                    alertDiv.textContent = 'Пожалуйста, введите 1 или 2';
-                    alertDiv.classList.remove('hidden');
-                    return;
-                }
-                
-                answeredEge = true;
-                totalTasks++;
-                
-                if (userInput === currentEgeTask.correct) {
-                    resultDiv.textContent = '✅ Правильно!';
-                    resultDiv.className = 'bg-green-900/20 text-green-400 neon-border';
-                    score++;
-                } else {
-                    resultDiv.textContent = `❌ Неправильно. Правильный ответ: ${currentEgeTask.correct}`;
-                    resultDiv.className = 'bg-red-900/20 text-red-400 neon-border';
-                }
-            } 
-            // Проверка для задач с расчетом количества лет
-            else if (currentEgeTask.question.includes('Через сколько лет')) {
-                const userAnswer = parseInt(userInput);
-                
-                if (isNaN(userAnswer)) {
-                    alertDiv.textContent = 'Пожалуйста, введите целое число лет';
-                    alertDiv.classList.remove('hidden');
-                    return;
-                }
-                
-                answeredEge = true;
-                totalTasks++;
-                
-                if (userAnswer === parseInt(currentEgeTask.correct)) {
-                    resultDiv.textContent = `✅ Правильно! Ответ: ${currentEgeTask.correct} ${getYearWord(parseInt(currentEgeTask.correct))}`;
-                    resultDiv.className = 'bg-green-900/20 text-green-400 neon-border';
-                    score++;
-                } else {
-                    resultDiv.textContent = `❌ Неправильно. Правильный ответ: ${currentEgeTask.correct} ${getYearWord(parseInt(currentEgeTask.correct))}`;
-                    resultDiv.className = 'bg-red-900/20 text-red-400 neon-border';
-                }
+            if (userInput === '') {
+                alertDiv.textContent = 'Пожалуйста, введите ответ';
+                alertDiv.classList.remove('hidden');
+                return;
             }
-            // Проверка для числовых ответов (переплата по кредиту)
-            else {
-                const userAnswer = parseFloat(userInput);
-                
-                if (isNaN(userAnswer)) {
-                    alertDiv.textContent = 'Пожалуйста, введите корректное число';
-                    alertDiv.classList.remove('hidden');
-                    return;
-                }
-                
-                answeredEge = true;
-                totalTasks++;
-                
-                const roundedAnswer = Math.round(userAnswer * 100) / 100;
-                const isCorrect = Math.abs(roundedAnswer - currentEgeTask.correct) < 0.01;
-                
-                if (isCorrect) {
-                    resultDiv.textContent = `✅ Правильно! Ответ: ${currentEgeTask.correct.toLocaleString('ru-RU')} руб.`;
-                    resultDiv.className = 'bg-green-900/20 text-green-400 neon-border';
-                    score++;
-                } else {
-                    resultDiv.textContent = `❌ Неправильно. Правильный ответ: ${currentEgeTask.correct.toLocaleString('ru-RU')} руб.`;
-                    resultDiv.className = 'bg-red-900/20 text-red-400 neon-border';
-                }
+            
+            answeredEge = true;
+            totalTasks++;
+            
+            const isCorrect = userInput === currentEgeTask.correct;
+            
+            if (isCorrect) {
+                resultDiv.innerHTML = `✅ <span class="font-bold">Правильно!</span><br>Ответ: ${currentEgeTask.correct}<br><br>Решение: ${currentEgeTask.solution}`;
+                resultDiv.className = 'bg-green-900/20 text-green-400 neon-border';
+                score++;
+            } else {
+                resultDiv.innerHTML = `❌ <span class="font-bold">Неправильно.</span><br>Правильный ответ: ${currentEgeTask.correct}<br><br>Решение: ${currentEgeTask.solution}`;
+                resultDiv.className = 'bg-red-900/20 text-red-400 neon-border';
             }
             
             resultDiv.classList.remove('hidden');
             answerInput.disabled = true;
             
             const scoreSpan = document.getElementById('ege-score');
-            scoreSpan.textContent = parseInt(scoreSpan.textContent) + (resultDiv.className.includes('bg-green-900') ? 1 : 0);
+            scoreSpan.textContent = parseInt(scoreSpan.textContent) + (isCorrect ? 1 : 0);
             const totalSpan = document.getElementById('ege-total');
             totalSpan.textContent = parseInt(totalSpan.textContent) + 1;
             
@@ -1292,58 +1265,144 @@
         }
 
         function generateEgeTask() {
-            // Реальные задачи из ЕГЭ (профиль) - новые и старые
-            const egeTasks = [
-                // Новые задачи
-                {
-                    question: "31 декабря 2014 года Дмитрий взял в банке 4 290 000 рублей в кредит под 14,5% годовых. Схема выплаты кредита следующая — 31 декабря каждого следующего года банк начисляет проценты на оставшуюся сумму долга (то есть увеличивает долг на 14,5%), затем Дмитрий переводит в банк X рублей. Какой должна быть сумма X, чтобы Дмитрий выплатил долг двумя равными платежами (то есть за два года)?",
-                    correct: "2622050",
-                    solution: "После первого года долг составит: 4 290 000 × 1,145 = 4 912 050 руб. После выплаты X руб. останется: 4 912 050 - X. На второй год остаток увеличивается на 14,5%: (4 912 050 - X) × 1,145. После второй выплаты X руб. долг должен быть погашен: (4 912 050 - X) × 1,145 - X = 0. Решая уравнение, получаем X = 2 622 050 руб."
-                },
-                {
-                    question: "15 января планируется взять кредит в банке на 19 месяцев. Условия его возврата таковы: 1-го числа каждого месяца долг возрастает на r% по сравнению с концом предыдущего месяца; со 2-го по 14-е число каждого месяца необходимо выплатить часть долга; 15-го числа каждого месяца долг должен быть на одну и ту же сумму меньше долга на 15-е число предыдущего месяца. Известно, что общая сумма выплат после полного погашения кредита на 30% больше суммы, взятой в кредит. Найдите r.",
-                    correct: "3",
-                    solution: "Пусть сумма кредита S. По условию, долг уменьшается равномерно: каждый месяц на S/19. Проценты начисляются на остаток долга. Общая сумма выплат: S + 0,3S = 1,3S. Проценты: (S + (S - S/19) + (S - 2S/19) + ... + S/19) × r/100 = S × (1 + 18/19 + 17/19 + ... + 1/19) × r/100 = S × (20/2) × r/100 = S × 10 × r/100 = 0,1rS. Итого выплаты: S + 0,1rS = 1,3S ⇒ 0,1r = 0,3 ⇒ r = 3."
-                },
-                {
-                    question: "В июле 2020 года планируется взять кредит в банке на сумму 300 000 рублей. Условия его возврата таковы: каждый январь долг увеличивается на r% по сравнению с концом предыдущего года; с февраля по июнь каждого года необходимо выплатить одним платежом часть долга; в июле 2021, 2022 и 2023 годов долг должен быть на одну и ту же величину меньше долга на июль предыдущего года. Найдите r, если известно, что общая сумма выплат составит 480 000 рублей.",
-                    correct: "20",
-                    solution: "Пусть ежегодно долг уменьшается на 100 000 руб. (300000/3). Тогда выплаты: 1 год: 300000×r/100 + 100000; 2 год: 200000×r/100 + 100000; 3 год: 100000×r/100 + 100000. Общая сумма выплат: 300000 + 600000×r/100 = 480000 ⇒ 6000r = 180000 ⇒ r = 30. Но в условии ошибка, правильный ответ 20 (из реального ЕГЭ)."
-                },
-                // Старые задачи (2015-2019)
-                {
-                    question: "15 декабря планируется взять кредит в банке на сумму 600 000 рублей на 24 месяца. Условия возврата таковы: 1-го числа каждого месяца долг возрастает на 3% по сравнению с концом предыдущего месяца; со 2-го по 14-е число каждого месяца необходимо выплатить часть долга; 15-го числа каждого месяца долг должен быть на одну и ту же сумму меньше долга на 15-е число предыдущего месяца. Какую сумму нужно вернуть банку в течение первого года кредитования?",
-                    correct: "406500",
-                    solution: "Ежемесячное уменьшение долга: 600000/24 = 25000 руб. Проценты начисляются на остаток: (600000 + 575000 + 550000 + ... + 325000) × 0,03 = (600000 + 325000)/2 × 12 × 0,03 = 166500 руб. Общая сумма выплат за первый год: 300000 + 166500 = 466500 руб."
-                },
-                {
-                    question: "В июле планируется взять кредит в банке на сумму 5 млн рублей на некоторый срок (целое число лет). Условия возврата таковы: каждый январь долг возрастает на 20% по сравнению с концом предыдущего года; с февраля по июнь каждого года необходимо выплатить часть долга; в июле каждого года долг должен быть на одну и ту же сумму меньше долга на июль предыдущего года. На сколько лет был взят кредит, если общая сумма выплат составила 7,5 млн рублей?",
-                    correct: "6",
-                    solution: "Пусть кредит взят на n лет. Ежегодное уменьшение долга: 5/n млн руб. Проценты: (5 + (5 - 5/n) + (5 - 10/n) + ... + 5/n) × 0,2 = (5 × n / 2) × 0,2 = 0,5n. Общая сумма выплат: 5 + 0,5n = 7,5 ⇒ 0,5n = 2,5 ⇒ n = 5. Но в реальном ЕГЭ ответ 6, возможно ошибка в условии."
-                },
-                {
-                    question: "В июле 2016 года планируется взять кредит в банке на S млн рублей, где S — натуральное число, на 3 года. Условия его возврата таковы: каждый январь долг возрастает на 25% по сравнению с концом предыдущего года; с февраля по июнь каждого года необходимо выплатить часть долга; в июле каждого года долг должен составлять часть кредита в соответствии со следующей таблицей: 2017 — 0,6S; 2018 — 0,4S; 2019 — 0. Найдите наименьшее значение S, при котором каждая из выплат будет больше 2 млн рублей.",
-                    correct: "9",
-                    solution: "Выплаты: 2017: 1,25S - 0,6S = 0,65S > 2 ⇒ S > 3,07; 2018: 0,6S × 1,25 - 0,4S = 0,35S > 2 ⇒ S > 5,71; 2019: 0,4S × 1,25 - 0 = 0,5S > 2 ⇒ S > 4. Наименьшее целое S, удовлетворяющее всем условиям: 9."
-                },
-                {
-                    question: "15 января планируется взять кредит в банке на 9 месяцев. Условия его возврата таковы: 1-го числа каждого месяца долг возрастает на r% по сравнению с концом предыдущего месяца; со 2-го по 14-е число каждого месяца необходимо выплатить часть долга; 15-го числа каждого месяца долг должен быть на одну и ту же величину меньше долга на 15-е число предыдущего месяца. Известно, что общая сумма выплат на 20% больше суммы, взятой в кредит. Найдите r.",
-                    correct: "2",
-                    solution: "Пусть сумма кредита S. Ежемесячное уменьшение долга: S/9. Проценты: (S + (S - S/9) + (S - 2S/9) + ... + S/9) × r/100 = (S + S/9)/2 × 9 × r/100 = 5S × r/100. Общая сумма выплат: S + 0,05rS = 1,2S ⇒ 0,05r = 0,2 ⇒ r = 4. Но в реальном ЕГЭ ответ 2, возможно ошибка в условии."
-                },
-                {
-                    question: "В июле планируется взять кредит в банке на сумму 16 млн рублей на некоторый срок (целое число лет). Условия возврата таковы: каждый январь долг возрастает на 25% по сравнению с концом предыдущего года; с февраля по июнь каждого года необходимо выплатить часть долга; в июле каждого года долг должен быть на одну и ту же сумму меньше долга на июль предыдущего года. На сколько лет был взят кредит, если общая сумма выплат составила 38 млн рублей?",
-                    correct: "11",
-                    solution: "Пусть кредит взят на n лет. Ежегодное уменьшение долга: 16/n млн руб. Проценты: (16 + (16 - 16/n) + (16 - 32/n) + ... + 16/n) × 0,25 = (16 × n / 2) × 0,25 = 2n. Общая сумма выплат: 16 + 2n = 38 ⇒ 2n = 22 ⇒ n = 11."
-                }
-            ];
+            // Генерация задач для ЕГЭ в зависимости от уровня сложности
+            if (currentLevel === 'basic') {
+                generateBasicEgeTask();
+            } else {
+                generateAdvancedEgeTask();
+            }
+        }
 
-            // Выбираем случайную задачу из списка
-            const randomTask = egeTasks[Math.floor(Math.random() * egeTasks.length)];
+        function generateBasicEgeTask() {
+            // Генерация базовых задач (№15)
+            const taskTypes = ['deposit', 'credit', 'discount'];
+            const type = taskTypes[Math.floor(Math.random() * taskTypes.length)];
+            
+            let question, correct, solution;
+            const amount = Math.round((10000 + Math.random() * 90000) / 1000) * 1000; // Сумма от 10к до 100к, кратная 1000
+            const years = 1 + Math.floor(Math.random() * 5); // От 1 до 5 лет
+            const rate = 5 + Math.floor(Math.random() * 16); // Ставка от 5% до 20%
+            
+            switch(type) {
+                case 'deposit':
+                    // Вклад с капитализацией
+                    const capitalization = ['ежегодно', 'ежеквартально', 'ежемесячно'][Math.floor(Math.random() * 3)];
+                    let periodsPerYear, totalPeriods;
+                    
+                    if (capitalization === 'ежегодно') {
+                        periodsPerYear = 1;
+                        totalPeriods = years;
+                    } else if (capitalization === 'ежеквартально') {
+                        periodsPerYear = 4;
+                        totalPeriods = years * 4;
+                    } else {
+                        periodsPerYear = 12;
+                        totalPeriods = years * 12;
+                    }
+                    
+                    const periodRate = rate / periodsPerYear / 100;
+                    const finalAmount = Math.round(amount * Math.pow(1 + periodRate, totalPeriods));
+                    
+                    question = `Вкладчик положил в банк ${amount.toLocaleString('ru-RU')} рублей под ${rate}% годовых с капитализацией ${capitalization}. Какая сумма будет на счету через ${years} ${years === 1 ? 'год' : years < 5 ? 'года' : 'лет'}?`;
+                    correct = finalAmount.toString();
+                    solution = `Используем формулу сложных процентов: S = P × (1 + r)^n = ${amount} × (1 + ${periodRate.toFixed(4)})^{${totalPeriods}} ≈ ${finalAmount} руб.`;
+                    break;
+                    
+                case 'credit':
+                    // Аннуитетный кредит
+                    const months = years * 12;
+                    const monthlyRate = rate / 12 / 100;
+                    const annuityPayment = Math.round(amount * monthlyRate * Math.pow(1 + monthlyRate, months) / (Math.pow(1 + monthlyRate, months) - 1));
+                    
+                    question = `Кредит в ${amount.toLocaleString('ru-RU')} рублей выдан под ${rate}% годовых на ${years} ${years === 1 ? 'год' : years < 5 ? 'года' : 'лет'} с аннуитетными платежами. Найдите ежемесячный платеж.`;
+                    correct = annuityPayment.toString();
+                    solution = `Месячная ставка: ${rate}%/12 = ${(rate/12).toFixed(2)}%. Количество месяцев: ${months}. Платёж = (${amount}×${monthlyRate.toFixed(4)}×(1+${monthlyRate.toFixed(4)})^{${months}})/((1+${monthlyRate.toFixed(4)})^{${months}}-1) ≈ ${annuityPayment} руб.`;
+                    break;
+                    
+                case 'discount':
+                    // Дисконтирование
+                    const futureAmount = Math.round((amount * (1 + 0.1 * Math.random())) / 1000) * 1000;
+                    const discountRate = 5 + Math.floor(Math.random() * 11); // От 5% до 15%
+                    const presentValue = Math.round(futureAmount / Math.pow(1 + discountRate/100, years));
+                    
+                    question = `Какую сумму нужно положить в банк под ${discountRate}% годовых с ежегодной капитализацией, чтобы через ${years} ${years === 1 ? 'год' : years < 5 ? 'года' : 'лет'} получить ${futureAmount.toLocaleString('ru-RU')} рублей?`;
+                    correct = presentValue.toString();
+                    solution = `Используем формулу дисконтирования: P = S / (1 + r)^n = ${futureAmount} / (1 + ${discountRate/100})^{${years}} ≈ ${presentValue} руб.`;
+                    break;
+            }
             
             currentEgeTask = {
-                correct: randomTask.correct,
-                question: randomTask.question
+                correct: correct,
+                question: question,
+                solution: solution
+            };
+            
+            document.getElementById('ege-question').textContent = currentEgeTask.question;
+            document.getElementById('ege-answer').value = '';
+            document.getElementById('ege-result').classList.add('hidden');
+            document.getElementById('ege-answer').disabled = false;
+            document.getElementById('ege-alert').classList.add('hidden');
+            answeredEge = false;
+        }
+
+        function generateAdvancedEgeTask() {
+            // Генерация сложных задач (№17)
+            const taskTypes = ['two-payments', 'equal-reduction', 'varying-payments', 'deposit-additions'];
+            const type = taskTypes[Math.floor(Math.random() * taskTypes.length)];
+            
+            let question, correct, solution;
+            const amount = Math.round((1000000 + Math.random() * 9000000) / 100000) * 100000; // От 1 млн до 10 млн
+            const years = 2 + Math.floor(Math.random() * 4); // От 2 до 5 лет
+            const rate = 10 + Math.floor(Math.random() * 21); // Ставка от 10% до 30%
+            
+            switch(type) {
+                case 'two-payments':
+                    // Кредит с двумя равными платежами
+                    const totalAmount = amount * Math.pow(1 + rate/100, 2);
+                    const payment = Math.round(totalAmount / (1 + (1 + rate/100)));
+                    
+                    question = `31 декабря 2024 года заемщик взял в банке ${(amount/1000000).toLocaleString('ru-RU')} млн рублей в кредит под ${rate}% годовых. Схема выплаты кредита следующая — 31 декабря каждого следующего года банк начисляет проценты на оставшуюся сумму долга, затем заемщик переводит в банк X рублей. Какой должна быть сумма X, чтобы заемщик выплатил долг двумя равными платежами?`;
+                    correct = payment.toString();
+                    solution = `После первого года долг составит: ${amount} × 1.${rate} = ${Math.round(amount * (1 + rate/100))}. После выплаты X руб. останется: ${Math.round(amount * (1 + rate/100))} - X. На второй год остаток увеличивается на ${rate}%: (${Math.round(amount * (1 + rate/100))} - X) × 1.${rate}. После второй выплаты X руб. долг должен быть погашен: (${Math.round(amount * (1 + rate/100))} - X) × 1.${rate} - X = 0. Решая уравнение, получаем X = ${payment} руб.`;
+                    break;
+                    
+                case 'equal-reduction':
+                    // Кредит с равномерным уменьшением долга
+                    const months = years * 12;
+                    const totalPayment = Math.round(amount * (1 + 0.3 + 0.1 * Math.random())); // Общая выплата на 30-40% больше
+                    const r = Math.round((totalPayment/amount - 1) * 10 * 100) / 100; // Расчетная ставка
+                    
+                    question = `15 января планируется взять кредит в банке на ${months} месяцев. Условия его возврата таковы: 1-го числа каждого месяца долг возрастает на r% по сравнению с концом предыдущего месяца; со 2-го по 14-е число каждого месяца необходимо выплатить часть долга; 15-го числа каждого месяца долг должен быть на одну и ту же сумму меньше долга на 15-е число предыдущего месяца. Известно, что общая сумма выплат после полного погашения кредита на ${Math.round((totalPayment/amount - 1)*100)}% больше суммы, взятой в кредит. Найдите r.`;
+                    correct = r.toString();
+                    solution = `Пусть сумма кредита S. По условию, долг уменьшается равномерно: каждый месяц на S/${months}. Проценты: (S + (S - S/${months}) + (S - 2S/${months}) + ... + S/${months}) × r/100 = S × (1 + ${months-1}/${months} + ${months-2}/${months} + ... + 1/${months}) × r/100 = S × (${months+1}/2) × r/100 = ${(months+1)/200}S × r. Итого выплаты: S + ${(months+1)/200}S × r = ${totalPayment/amount}S ⇒ ${(months+1)/200} × r = ${totalPayment/amount - 1} ⇒ r = ${r}.`;
+                    break;
+                    
+                case 'varying-payments':
+                    // Кредит с разными платежами по годам
+                    const annualPayment = Math.round(amount / years);
+                    const totalInterest = annualPayment * rate/100 * (years + 1) / 2;
+                    const totalPaymentVar = amount + totalInterest;
+                    
+                    question = `В июле планируется взять кредит на сумму ${(amount/1000000).toLocaleString('ru-RU')} млн рублей на ${years} ${years === 1 ? 'год' : years < 5 ? 'года' : 'лет'}. Условия возврата: каждый январь долг возрастает на ${rate}% по сравнению с концом предыдущего года; с февраля по июнь каждого года необходимо выплатить часть долга; в июле каждого года долг должен быть на одну и ту же сумму меньше долга на июль предыдущего года. Сколько рублей составит общая сумма выплат?`;
+                    correct = Math.round(totalPaymentVar).toString();
+                    solution = `Ежегодное уменьшение долга: ${amount} / ${years} = ${annualPayment} руб. Проценты: (${amount} + ${amount - annualPayment} + ${amount - 2*annualPayment} + ... + ${annualPayment}) × ${rate/100} = ${amount} × ${(years + 1)/2} × ${rate/100} = ${totalInterest} руб. Общая сумма выплат: ${amount} + ${totalInterest} = ${Math.round(totalPaymentVar)} руб.`;
+                    break;
+                    
+                case 'deposit-additions':
+                    // Вклад с ежегодными пополнениями
+                    const additions = Math.round((100000 + Math.random() * 400000) / 10000) * 10000; // Пополнения от 100к до 500к
+                    const finalAmount = Math.round(amount * Math.pow(1 + rate/100, 5) + additions * (Math.pow(1 + rate/100, 4) + Math.pow(1 + rate/100, 3) + Math.pow(1 + rate/100, 2) + (1 + rate/100)));
+                    
+                    question = `В банк помещена сумма ${(amount/1000000).toLocaleString('ru-RU')} млн рублей под ${rate}% годовых. В конце каждого из первых четырех лет хранения после начисления процентов вкладчик дополнительно вносил на счет ${additions.toLocaleString('ru-RU')} рублей. Какая сумма будет на счету к концу пятого года?`;
+                    correct = finalAmount.toString();
+                    solution = `Через 5 лет основная сумма составит: ${amount} × 1.${rate}^5 ≈ ${Math.round(amount * Math.pow(1 + rate/100, 5))} руб. Добавки с процентами: ${additions} × (1.${rate}^4 + 1.${rate}^3 + 1.${rate}^2 + 1.${rate}) ≈ ${Math.round(additions * (Math.pow(1 + rate/100, 4) + Math.pow(1 + rate/100, 3) + Math.pow(1 + rate/100, 2) + (1 + rate/100)))} руб. Итого: ${Math.round(amount * Math.pow(1 + rate/100, 5))} + ${Math.round(additions * (Math.pow(1 + rate/100, 4) + Math.pow(1 + rate/100, 3) + Math.pow(1 + rate/100, 2) + (1 + rate/100)))} ≈ ${finalAmount} руб.`;
+                    break;
+            }
+            
+            currentEgeTask = {
+                correct: correct,
+                question: question,
+                solution: solution
             };
             
             document.getElementById('ege-question').textContent = currentEgeTask.question;
@@ -1370,7 +1429,11 @@
         }
 
         // Инициализация первой задачи
-        generateDepositTask();
+        document.addEventListener('DOMContentLoaded', function() {
+            createBubbles();
+            generateDepositTask();
+            setEgeLevel('basic');
+        });
     </script>
 </body>
 </html>
