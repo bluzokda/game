@@ -551,7 +551,7 @@
                     </div>
                     
                     <div class="flex justify-between items-center">
-                        <button onclick="generateEgeTask()" 
+                        <button onclick="generateEgeTask()" id="ege-new-task-btn"
                             class="btn-neon px-6 py-3 rounded-lg flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -560,7 +560,8 @@
                         </button>
                         
                         <div class="text-sm text-white/60 bg-black/30 px-4 py-2 rounded-full neon-border">
-                            <span class="font-medium text-red-500" id="ege-score">0</span> из <span class="font-medium" id="ege-total">0</span> верно
+                            <span class="font-medium text-red-500" id="ege-score">0</span> баллов | 
+                            <span class="font-medium text-red-500" id="ege-tasks">0</span>/10 задач
                         </div>
                     </div>
                 </div>
@@ -690,6 +691,8 @@
         let answeredInvest = false;
         let answeredEge = false;
         let currentLevel = 'basic'; // 'basic' или 'advanced'
+        let egeTasksCompleted = 0;
+        let egeTotalScore = 0;
 
         // Создание анимированного фона
         function createBubbles() {
@@ -788,6 +791,13 @@
             // Обновляем стили кнопок
             document.getElementById('ege-basic-btn').className = level === 'basic' ? 'px-4 py-2 rounded-l-lg font-medium bg-red-900/50 text-white border border-red-500' : 'px-4 py-2 rounded-l-lg font-medium bg-gray-800/50 text-white/70 border border-gray-700';
             document.getElementById('ege-advanced-btn').className = level === 'advanced' ? 'px-4 py-2 rounded-r-lg font-medium bg-red-900/50 text-white border border-red-500' : 'px-4 py-2 rounded-r-lg font-medium bg-gray-800/50 text-white/70 border border-gray-700';
+            
+            // Сброс счетчиков при смене уровня
+            egeTasksCompleted = 0;
+            egeTotalScore = 0;
+            document.getElementById('ege-score').textContent = '0';
+            document.getElementById('ege-tasks').textContent = '0/10';
+            document.getElementById('ege-new-task-btn').disabled = false;
             
             // Генерируем новую задачу
             generateEgeTask();
@@ -1027,11 +1037,14 @@
             
             answeredEge = true;
             totalTasks++;
+            egeTasksCompleted++;
             
             const isCorrect = userInput === currentEgeTask.correct;
+            const pointsEarned = currentLevel === 'basic' ? 1 : 2;
             
             if (isCorrect) {
-                resultDiv.innerHTML = `✅ <span class="font-bold">Правильно!</span><br>Ответ: ${currentEgeTask.correct}<br><br>Решение: ${currentEgeTask.solution}`;
+                egeTotalScore += pointsEarned;
+                resultDiv.innerHTML = `✅ <span class="font-bold">Правильно!</span><br>Ответ: ${currentEgeTask.correct}<br><br>Решение: ${currentEgeTask.solution}<br>Вы получили ${pointsEarned} балл${pointsEarned > 1 ? 'а' : ''}`;
                 resultDiv.className = 'bg-green-900/20 text-green-400 neon-border';
                 score++;
             } else {
@@ -1042,10 +1055,16 @@
             resultDiv.classList.remove('hidden');
             answerInput.disabled = true;
             
-            const scoreSpan = document.getElementById('ege-score');
-            scoreSpan.textContent = parseInt(scoreSpan.textContent) + (isCorrect ? 1 : 0);
-            const totalSpan = document.getElementById('ege-total');
-            totalSpan.textContent = parseInt(totalSpan.textContent) + 1;
+            // Обновление счетчиков
+            document.getElementById('ege-score').textContent = egeTotalScore;
+            document.getElementById('ege-tasks').textContent = `${egeTasksCompleted}/10`;
+            
+            // Проверка завершения 10 задач
+            if (egeTasksCompleted >= 10) {
+                resultDiv.innerHTML += `<br><br><strong>Тест завершен!</strong> Вы набрали ${egeTotalScore} баллов из 20 возможных.`;
+                document.getElementById('ege-answer').disabled = true;
+                document.getElementById('ege-new-task-btn').disabled = true;
+            }
             
             updateProgress();
         }
@@ -1265,6 +1284,14 @@
         }
 
         function generateEgeTask() {
+            // Проверка завершения 10 задач
+            if (egeTasksCompleted >= 10) {
+                document.getElementById('ege-question').textContent = "Вы уже решили 10 задач. Максимальное количество задач достигнуто.";
+                document.getElementById('ege-answer').disabled = true;
+                document.getElementById('ege-new-task-btn').disabled = true;
+                return;
+            }
+            
             // Генерация задач для ЕГЭ в зависимости от уровня сложности
             if (currentLevel === 'basic') {
                 generateBasicEgeTask();
@@ -1427,13 +1454,6 @@
             if (lastDigit >= 2 && lastDigit <= 4) return 'года';
             return 'лет';
         }
-
-        // Инициализация первой задачи
-        document.addEventListener('DOMContentLoaded', function() {
-            createBubbles();
-            generateDepositTask();
-            setEgeLevel('basic');
-        });
     </script>
 </body>
 </html>
