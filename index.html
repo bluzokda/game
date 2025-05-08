@@ -1061,7 +1061,8 @@
             
             // Проверка завершения 10 задач
             if (egeTasksCompleted >= 10) {
-                resultDiv.innerHTML += `<br><br><strong>Тест завершен!</strong> Вы набрали ${egeTotalScore} баллов из 20 возможных.`;
+                const maxPossible = currentLevel === 'basic' ? 10 : 20;
+                resultDiv.innerHTML += `<br><br><strong>Тест завершен!</strong> Вы набрали ${egeTotalScore} баллов из ${maxPossible} возможных.`;
                 document.getElementById('ege-answer').disabled = true;
                 document.getElementById('ege-new-task-btn').disabled = true;
             }
